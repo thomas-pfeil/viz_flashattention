@@ -1,0 +1,43 @@
+\documentclass{article}
+
+\usepackage{xcolor}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{helvet}
+\usepackage{cleveref}
+
+\begin{document}
+
+\section*{An intuitive visualization of FlashAttention}
+
+In FlashAttention-2 (\href{https://arxiv.org/abs/2307.08691}{original publication}), attention computation is reformulated to ensure all required input and intermediate data fit within limited local memory.
+This minimizes data reloading from global memory, a key inefficiency in the standard attention formulation:
+$$ O = \mathrm{Softmax}(Q K^T)V $$
+with $Q, K, V \in \mathbb{R}^{N \times d}$, with $N$ as the sequence length and $d$ the feature dimension.
+
+FlashAttention computes output tiles $O_{ik} \in \mathbb{R}^{a \times b}$ independently using \crefrange{eq:s}{eq:oik} across $j$, as also visualized in \cref{fig:flashattention}.
+Here, uppercase and lowercase letters represent matrices and vectors, respectively, while $a \times b$ defines the tile shape.
+\begin{align}
+  S_i^{(j)} &= \textcolor{blue}{Q_i K^{T(j)}} \label{eq:s} \\
+  P_i^{(j)} &= \exp(S_i^{(j)} - m_i^{(j)}) \label{eq:p} \\
+  \textcolor{red}{m_i^{(j)}} &= \max(m_i^{(j-1)}, \text{rowmax} (S_i^{(j)})) \label{eq:m} \\
+  \alpha_i^{(j)} &= \exp(m_i^{(j-1)} - m_i^{(j)}) \label{eq:alpha} \\
+  \textcolor{red}{l_i^{(j)}} &= \alpha_i^{(j)} l_i^{(j-1)} + \text{rowsum}(P_i^{(j)}) \label{eq:l} \\
+  \textcolor{red}{O_{ik}^{(j)}} &= \alpha_i^{(j)} O_{ik}^{(j-1)} + \textcolor{blue}{P_i^{(j)} V_k^{(j)}} \label{eq:oikj} \\
+  O_{ik} &= \frac{O_{ik}^{(-1)}}{l_i^{(-1)}} \label{eq:oik}
+\end{align}
+Matrix multiplications $C=AB$ with $C \in \mathbb{R}^{a \times b}$ are highlighted in blue, while intermediate results stored in memory across iterations $j$ are in red.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{flashattention.pdf}
+  \caption{
+    Spatial representation of vanilla attention (a) and the inner (b) and outer (c) loops of FlashAttention.
+    The Softmax computation across tiles j is highlighted in green.
+  }
+  \label{fig:flashattention}
+\end{figure}
+
+\end{document}
