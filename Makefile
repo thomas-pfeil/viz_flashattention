@@ -1,11 +1,17 @@
 # Variables
 TEXFILE = main.tex
 PDFOUT = main.pdf
+IMGSOUT = flashattention
 SVGS = $(wildcard *.svg)
 PDFS = $(SVGS:.svg=.pdf)
 
 # Default target
 all: $(PDFOUT)
+
+# Create images for medium.com
+medium: $(PDFOUT)
+	# Crop PDF and convert to Images
+	pdfcrop --margins '3 3 3 3' $(PDFOUT) /dev/stdout | pdftoppm -png -r 900 - $(IMGSOUT)
 
 # Convert SVG to PDF using Inkscape
 %.pdf: %.svg
@@ -19,6 +25,7 @@ $(PDFOUT): $(TEXFILE) $(PDFS)
 clean:
 	latexmk -C
 	rm -f $(PDFS)
+	rm -f $(IMGSOUT)*.png
 
 # Force rebuild
 .PHONY: all clean
