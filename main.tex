@@ -12,9 +12,9 @@
 
 \pagenumbering{gobble}
 
-\section*{An intuitive visualization of FlashAttention}
+%\section*{An intuitive visualization of FlashAttention}
 
-In FlashAttention-2 (\href{https://arxiv.org/abs/2307.08691}{original publication}), attention computation is reformulated to ensure all required input and intermediate data fit within limited local memory.
+\noindent In FlashAttention-2 (\href{https://arxiv.org/abs/2307.08691}{original publication}), attention computation is reformulated to ensure all required input and intermediate data fit within limited local memory.
 This minimizes data reloading from global memory, a key inefficiency in the standard attention formulation:
 $$ O = \mathrm{Softmax}(Q K^T)V $$
 with $Q, K, V \in \mathbb{R}^{N \times d}$, with $N$ as the sequence length and $d$ the feature dimension.
